@@ -1,0 +1,6 @@
+{
+  "chat.plugins.enabled": true,
+  "chat.plugins.marketplaces": [
+    "git@ssh.dev.azure.com:v3/<organization>/<project>/<repository>"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "extraKnownMarketplaces": {
+    "team-copilot-kit": {
+      "source": {
+        "source": "github",
+        "repo": "<your-org>/<repository>",
+        "ref": "v0.1.0"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "team-standards@team-copilot-kit": true
+  }
+}

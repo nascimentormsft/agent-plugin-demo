@@ -1,0 +1,14 @@
+{
+  "extraKnownMarketplaces": {
+    "team-copilot-kit": {
+      "source": {
+        "source": "git",
+        "url": "https://dev.azure.com/<organization>/<project>/_git/<repository>",
+        "ref": "v0.1.0"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "team-standards@team-copilot-kit": true
+  }
+}

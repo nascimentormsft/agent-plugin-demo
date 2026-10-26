@@ -1,0 +1,14 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "team-standards",
+  "version": "0.1.0",
+  "description": "Example team plugin: a scoped structured-logging instruction and two skills.",
+  "license": "MIT",
+  "keywords": [
+    "copilot",
+    "agent-plugin",
+    "instructions",
+    "skills",
+    "template"
+  ]
+}
