@@ -2,6 +2,16 @@
 
 Use a repository-level instruction to apply your logging standard to an ASP.NET Core API, without affecting unrelated projects.
 
+## Instructions or skills?
+
+| Use an instruction for... | Use a skill for... |
+|---|---|
+| Rules that should guide relevant work: "Use structured logging." | A repeatable task: "Add structured logging to this service." |
+| Conventions scoped by file patterns and task relevance. | A procedure loaded on demand or invoked by its slash command. |
+| What the result must follow. | How to produce and verify that result, optionally using bundled templates or scripts. |
+
+Use both together: the instruction defines the logging standard; the skill applies it step by step. A template inside a skill is a starting file, not a rule or an automatically installed component. See the [skills guide and reusable template](SKILLS-EXAMPLE.md).
+
 ## Quick setup
 
 1. Save the example below as `.github/instructions/custom-logging.instructions.md` in the application repository, not in your personal instructions.

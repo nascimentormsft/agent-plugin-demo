@@ -44,14 +44,14 @@ will configure. Fix authentication or repository permissions if this fails.
 
 Start with `team-standards`, then replace its example content with team standards:
 
-1. Edit the [logging rule](../plugins/team-standards/com.github.copilot/rules/structured-logging.instructions.md).
+1. Edit the [logging rule](../../plugins/team-standards/com.github.copilot/rules/structured-logging.instructions.md).
    Keep a meaningful description and an `applyTo` glob that matches consumer
    files. This plugin rule location is Copilot-specific.
-2. Edit the [logging skill](../plugins/team-standards/skills/add-structured-logging/SKILL.md)
+2. Edit the [logging skill](../../plugins/team-standards/skills/add-structured-logging/SKILL.md)
    and its templates, or add `skills/<skill-name>/SKILL.md`. Each skill needs
    frontmatter with a matching kebab-case `name` and a description explaining
    when to use it.
-3. Keep the [instruction setup template](../plugins/team-standards/skills/setup-project-instructions/templates/structured-logging.instructions.md)
+3. Keep the [instruction setup template](../../plugins/team-standards/skills/setup-project-instructions/templates/structured-logging.instructions.md)
    aligned with the plugin rule when changing logging standards. It supports an
    explicit project-local instruction copy for clients that need one.
 4. Set the customer/team owner and marketplace description in both catalogs.
@@ -62,8 +62,8 @@ Start with `team-standards`, then replace its example content with team standard
 
 For another plugin, add a directory under `plugins/` with its own `plugin.json`
 and skills, then add a matching relative source entry to **both** catalogs.
-Use [the existing manifest](../plugins/team-standards/plugin.json) and
-[catalog](../.github/plugin/marketplace.json) as the working examples.
+Use [the existing manifest](../../plugins/team-standards/plugin.json) and
+[catalog](../../.github/plugin/marketplace.json) as the working examples.
 The application stays outside the marketplace repository.
 
 ## 2. Install in VS Code
@@ -186,13 +186,13 @@ This template's plugin contains these seven files, relative to its plugin root:
 
 | Installed artifact | What it provides |
 |---|---|
-| [plugin.json](../plugins/team-standards/plugin.json) | Plugin identity, version, description, and metadata. |
-| [com.github.copilot/rules/structured-logging.instructions.md](../plugins/team-standards/com.github.copilot/rules/structured-logging.instructions.md) | Scoped logging standard for `src/**/*.cs`; loading this rule is client-dependent. |
-| [skills/add-structured-logging/SKILL.md](../plugins/team-standards/skills/add-structured-logging/SKILL.md) | Agent workflow for instrumenting an ASP.NET Core endpoint or service. |
-| [skills/add-structured-logging/templates/LogEvents.cs](../plugins/team-standards/skills/add-structured-logging/templates/LogEvents.cs) | C# event-ID template, not compiled or executed by installation. |
-| [skills/add-structured-logging/templates/CorrelationIdMiddleware.cs](../plugins/team-standards/skills/add-structured-logging/templates/CorrelationIdMiddleware.cs) | C# correlation-ID middleware template, not registered by installation. |
-| [skills/setup-project-instructions/SKILL.md](../plugins/team-standards/skills/setup-project-instructions/SKILL.md) | Agent workflow for explicitly creating a project-local instruction. |
-| [skills/setup-project-instructions/templates/structured-logging.instructions.md](../plugins/team-standards/skills/setup-project-instructions/templates/structured-logging.instructions.md) | Instruction template used by that setup workflow. |
+| [plugin.json](../../plugins/team-standards/plugin.json) | Plugin identity, version, description, and metadata. |
+| [com.github.copilot/rules/structured-logging.instructions.md](../../plugins/team-standards/com.github.copilot/rules/structured-logging.instructions.md) | Scoped logging standard for `src/**/*.cs`; loading this rule is client-dependent. |
+| [skills/add-structured-logging/SKILL.md](../../plugins/team-standards/skills/add-structured-logging/SKILL.md) | Agent workflow for instrumenting an ASP.NET Core endpoint or service. |
+| [skills/add-structured-logging/templates/LogEvents.cs](../../plugins/team-standards/skills/add-structured-logging/templates/LogEvents.cs) | C# event-ID template, not compiled or executed by installation. |
+| [skills/add-structured-logging/templates/CorrelationIdMiddleware.cs](../../plugins/team-standards/skills/add-structured-logging/templates/CorrelationIdMiddleware.cs) | C# correlation-ID middleware template, not registered by installation. |
+| [skills/setup-project-instructions/SKILL.md](../../plugins/team-standards/skills/setup-project-instructions/SKILL.md) | Agent workflow for explicitly creating a project-local instruction. |
+| [skills/setup-project-instructions/templates/structured-logging.instructions.md](../../plugins/team-standards/skills/setup-project-instructions/templates/structured-logging.instructions.md) | Instruction template used by that setup workflow. |
 
 These links open the **source in this repository**, not necessarily your installed
 version. Inspect the installed copy or the exact published revision as described
@@ -289,10 +289,10 @@ agent saying it used a skill is not by itself proof that the result is correct.
 ## 5. Release and update
 
 1. Change the plugin through a pull request.
-2. Update its version in [the manifest](../plugins/team-standards/plugin.json)
+2. Update its version in [the manifest](../../plugins/team-standards/plugin.json)
    and the matching entry in both catalogs:
-   [Copilot catalog](../.github/plugin/marketplace.json) and
-   [compatible catalog](../.claude-plugin/marketplace.json).
+   [Copilot catalog](../../.github/plugin/marketplace.json) and
+   [compatible catalog](../../.claude-plugin/marketplace.json).
    Keep the catalogs identical and update their marketplace metadata version
    when publishing a new marketplace release.
 3. Run `python .\scripts\validate.py` from the repository root.

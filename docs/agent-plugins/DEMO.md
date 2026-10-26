@@ -28,13 +28,13 @@ Install the .NET SDK required by your application.
 
 Show these files in a separate editor window:
 
-- [Marketplace catalog](../.github/plugin/marketplace.json): lists the plugin.
-- [Plugin manifest](../plugins/team-standards/plugin.json): identifies the plugin.
-- [Logging rule](../plugins/team-standards/com.github.copilot/rules/structured-logging.instructions.md):
+- [Marketplace catalog](../../.github/plugin/marketplace.json): lists the plugin.
+- [Plugin manifest](../../plugins/team-standards/plugin.json): identifies the plugin.
+- [Logging rule](../../plugins/team-standards/com.github.copilot/rules/structured-logging.instructions.md):
   defines the C# scope and logging conventions.
-- [Logging skill](../plugins/team-standards/skills/add-structured-logging/SKILL.md):
+- [Logging skill](../../plugins/team-standards/skills/add-structured-logging/SKILL.md):
   packages the workflow and C# templates.
-- [Instruction setup skill](../plugins/team-standards/skills/setup-project-instructions/SKILL.md):
+- [Instruction setup skill](../../plugins/team-standards/skills/setup-project-instructions/SKILL.md):
   explicitly creates a project-local instruction when needed.
 
 Point out that the application is not part of this repository.

@@ -33,12 +33,33 @@ agent-plugin-demo/
 |       `-- setup-project-instructions/ # Workflow and instruction template
 |-- scripts/validate.py                # Maintainer checks; Python standard library
 `-- docs/
-    |-- DEMO.md
-    `-- PRIVATE-REPO-SETUP.md
+    |-- agent-plugins/
+    |   |-- DEMO.md
+    |   `-- PRIVATE-REPO-SETUP.md
+    `-- agent-customization/
+        |-- CUSTOM-INSTRUCTIONS-EXAMPLE.md
+        `-- SKILLS-EXAMPLE.md
 ```
 
 There is intentionally no sample application, consumer configuration folder,
 application build, or dependency installation step here.
+
+### What gets installed?
+
+**The content under [docs/](docs/) is documentation only, not part of the installed
+agent plugin.** Its guides and copy-ready examples are for people to read and
+adapt; installing the plugin does not activate those examples.
+
+The marketplace catalog selects `./plugins/team-standards` as the plugin source.
+Only that directory's manifest, rules, skills and bundled assets form this plugin.
+The catalogs make it discoverable; the repository's README, `docs/` and root
+`scripts/` are not plugin components.
+
+Keep these roles separate: put reusable plugin content under
+[plugins/](plugins/), and explanatory guides under [docs/](docs/). Do not bundle
+the documentation folder into the plugin or use the repository root as the plugin
+directory. A template inside a plugin skill is a plugin asset; a code example in
+a documentation page is not.
 
 ## Customer quick start
 
@@ -80,8 +101,11 @@ alongside their application.
 
 Full steps for **creating the private repo, authoring a plugin, authentication,
 project recommendations, and updates**:
-[private marketplace setup](docs/PRIVATE-REPO-SETUP.md).
-For the customer presentation, follow [the demo guide](docs/DEMO.md).
+[private marketplace setup](docs/agent-plugins/PRIVATE-REPO-SETUP.md).
+For the customer presentation, follow [the demo guide](docs/agent-plugins/DEMO.md).
+
+For authoring guidance, see the [instructions example and template](docs/agent-customization/CUSTOM-INSTRUCTIONS-EXAMPLE.md)
+and [skills example and template](docs/agent-customization/SKILLS-EXAMPLE.md).
 
 ## What the plugin brings to a project
 
