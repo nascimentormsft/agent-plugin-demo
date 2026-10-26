@@ -1,79 +1,119 @@
-# Set up the plugin repository as a private marketplace
+# Share the plugin as a private marketplace
 
-This guide uses **Azure DevOps (Azure Repos)** as the main example and lists the differences for a
-**private GitHub** repository at the end. Replace every `<placeholder>`.
+Use this guide to create a customer-owned private repository, author a plugin,
+and install it in separate projects. GitHub and Azure Repos are alternative hosts;
+you do not need both.
 
-| Placeholder | Example meaning |
-|---|---|
-| `<organization>` | Azure DevOps organization |
-| `<project>` | Azure DevOps project |
-| `<repository>` | Name of the private repository holding this template |
+## 1. Publish and grant access
 
-HTTPS URL: `https://dev.azure.com/<organization>/<project>/_git/<repository>`
-SSH URL: `git@ssh.dev.azure.com:v3/<organization>/<project>/<repository>`
+Create an empty **private** repository in GitHub, or an Azure Repos repository in
+a private Azure DevOps project. Copy this template's contents, including hidden
+catalog directories, into a new local folder. From that folder:
 
----
-
-## 1. Create the private repository (maintainers, once)
-
-1. In Azure DevOps: **Repos → New repository** in the project that owns your engineering standards.
-2. Push this template:
-   ```bash
-   git remote add origin https://dev.azure.com/<organization>/<project>/_git/<repository>
-   git push -u origin main
-   ```
-3. Run `python scripts/validate.py` and tag the first release:
-   ```bash
-   git tag v0.1.0 && git push origin v0.1.0
-   ```
-4. Protect `main`: **Project settings → Repositories → Policies** – require a pull request and at
-   least one reviewer. Every change to instructions and skills is then reviewed like code.
-
-## 2. Control who can use it
-
-Access to the plugin = **Read** access to the repository.
-
-| Role | Azure DevOps permission |
-|---|---|
-| Developers who install the plugin | **Read** on the repository (e.g. the project's *Readers* group, or a dedicated group) |
-| Maintainers of the standards | **Contribute** + **Contribute to pull requests** |
-
-Developers in other projects need Read access to this repository too (add their group under
-**Repository settings → Security**).
-
-## 3. Authentication on developer machines
-
-Copilot (VS Code and CLI) clones the marketplace with **Git**, so it uses whatever Git
-authentication already works on the machine. Nothing is stored in this repository.
-
-Pick one:
-
-| Option | When | Setup |
-|---|---|---|
-| **Git Credential Manager (recommended)** | Windows / macOS with Microsoft Entra ID sign-in | Included with Git for Windows. The first `git` command against `dev.azure.com` opens a browser sign-in. To use Microsoft Entra ID tokens: `git config --global credential.azreposCredentialType oauth` |
-| **SSH key** | Linux, or where browser sign-in is not possible | Add the public key in **User settings → SSH public keys**; use the SSH URL. |
-| **Personal access token (PAT)** | Last resort (build agents, containers) | Scope **Code (Read)** only, short expiry. Store it in the Git credential store – **never** in `settings.json` or in this repository. |
-
-**Test before installing:**
-```bash
-git ls-remote https://dev.azure.com/<organization>/<project>/_git/<repository>
+```powershell
+git init -b main
+git add .
+git commit -m "Create private agent plugin marketplace"
+git remote add origin <private-remote-url>
+git push -u origin main
 ```
-If this prints references (for example `refs/heads/main`), Copilot can reach the repository too.
 
-## 4. Install the plugin
+Replace `<private-remote-url>` with one of the URLs below before running the
+commands. This creates a separate customer repository without changing this
+template's origin or visibility. Review the staged content before committing.
 
-### Option A – Project recommendation (recommended)
-Commit this file to each project as `.github/copilot/settings.json`
-(template: `examples/consumer-repo/.github/copilot/settings.json`):
+Developers need **Read** access; maintainers need permission to contribute.
+Protect the default branch with pull requests. In Azure DevOps, explicitly grant
+Read access to developers in other projects who need the plugin.
+
+Use an authenticated Git remote, never credentials embedded in a URL or settings:
+
+| Host | HTTPS remote |
+|---|---|
+| GitHub | `https://github.com/<owner>/<repository>.git` |
+| Azure Repos | `https://dev.azure.com/<organization>/<project>/_git/<repository>` |
+
+For GitHub, authenticate with `gh auth login` and configure Git with
+`gh auth setup-git`. For Azure Repos, use Git Credential Manager or an SSH key
+registered with Azure DevOps.
+
+Before installation, run `git ls-remote <remote-url>` with the same remote you
+will configure. Fix authentication or repository permissions if this fails.
+
+### Author the customer's plugin
+
+Start with `team-standards`, then replace its example content with team standards:
+
+1. Edit the [logging rule](../plugins/team-standards/com.github.copilot/rules/structured-logging.instructions.md).
+   Keep a meaningful description and an `applyTo` glob that matches consumer
+   files. This plugin rule location is Copilot-specific.
+2. Edit the [logging skill](../plugins/team-standards/skills/add-structured-logging/SKILL.md)
+   and its templates, or add `skills/<skill-name>/SKILL.md`. Each skill needs
+   frontmatter with a matching kebab-case `name` and a description explaining
+   when to use it.
+3. Keep the [instruction setup template](../plugins/team-standards/skills/setup-project-instructions/templates/structured-logging.instructions.md)
+   aligned with the plugin rule when changing logging standards. It supports an
+   explicit project-local instruction copy for clients that need one.
+4. Set the customer/team owner and marketplace description in both catalogs.
+   To rename the plugin, update its directory, manifest name, catalog names and
+   source paths, and the installation examples together.
+5. Run `python .\scripts\validate.py` from the repository root. Test the plugin in
+   a separate application, review the output, and push the changes.
+
+For another plugin, add a directory under `plugins/` with its own `plugin.json`
+and skills, then add a matching relative source entry to **both** catalogs.
+Use [the existing manifest](../plugins/team-standards/plugin.json) and
+[catalog](../.github/plugin/marketplace.json) as the working examples.
+The application stays outside the marketplace repository.
+
+## 2. Install in VS Code
+
+In each developer's VS Code user Settings (JSON), enable plugins and register the
+marketplace. For GitHub:
+
+```json
+{
+  "chat.plugins.enabled": true,
+  "chat.plugins.marketplaces": [
+    "https://github.com/<owner>/<repository>.git"
+  ]
+}
+```
+
+For Azure Repos, replace the entry with:
+
+```text
+https://dev.azure.com/<organization>/<project>/_git/<repository>
+```
+
+Then:
+
+1. Open the separate application repository.
+2. In Extensions, search `@agentPlugins`.
+3. Install **team-standards** from **team-copilot-kit** and review the trust prompt.
+4. Confirm the skills appear in **Chat: Configure Skills**.
+
+Do not also register the same plugin with `chat.pluginLocations`.
+For a reproducible VS Code installation, append `#<full-40-character-commit-sha>`
+to the marketplace URL. A branch or tag can also select a revision, but is not
+immutable.
+
+## 3. Recommend the plugin in any project
+
+For repeatable team onboarding, commit `.github/copilot/settings.json` in each
+consuming project. This small configuration references the private marketplace;
+it does not copy its instructions or skills.
+
+For **private GitHub**:
 
 ```json
 {
   "extraKnownMarketplaces": {
     "team-copilot-kit": {
       "source": {
-        "source": "git",
-        "url": "https://dev.azure.com/<organization>/<project>/_git/<repository>",
-        "ref": "v0.1.0"
+        "source": "github",
+        "repo": "<owner>/<repository>",
+        "ref": "<release-tag-or-full-commit-sha>"
       }
     }
   },
@@ -82,71 +122,90 @@ Commit this file to each project as `.github/copilot/settings.json`
   }
 }
 ```
-- **VS Code:** after the first chat message, a notification shows the recommended plugin; it is also
-  listed under **Extensions → `@agentPlugins @recommended`**.
-- **Copilot CLI:** reads the same file when it runs in the project folder.
-- `ref` pins the project to a released version. Change it to roll the project forward.
 
-### Option B – VS Code, per developer
-1. Settings (JSON) – template: `examples/vscode-user-settings.json`:
-   ```json
-   {
-     "chat.plugins.enabled": true,
-     "chat.plugins.marketplaces": [
-       "git@ssh.dev.azure.com:v3/<organization>/<project>/<repository>"
-     ]
-   }
-   ```
-   VS Code accepts an SSH-style remote, an HTTPS remote, or a `file:///` path to a local clone. If
-   the public lookup fails, VS Code clones the repository directly with your Git credentials.
-2. **Extensions** view → search `@agentPlugins` → install **team-standards**.
-3. Check **Chat: Open Customizations → Plugins**.
+For **Azure Repos**, use this configuration instead:
 
-### Option C – GitHub Copilot CLI
-```bash
-copilot plugin marketplace add https://dev.azure.com/<organization>/<project>/_git/<repository>
+```json
+{
+  "extraKnownMarketplaces": {
+    "team-copilot-kit": {
+      "source": {
+        "source": "git",
+        "url": "https://dev.azure.com/<organization>/<project>/_git/<repository>",
+        "ref": "<release-tag-or-full-commit-sha>"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "team-standards@team-copilot-kit": true
+  }
+}
+```
+
+Replace the placeholders with the actual private repository and a published
+revision. The marketplace key must match the catalog's `name`; the qualified
+plugin identity must match the plugin and marketplace names.
+
+After a developer sends the first chat message in VS Code, the project can show a
+plugin recommendation. They can also search `@agentPlugins @recommended` and
+install it after reviewing the source. Each developer still needs their own Git
+authentication and repository Read permission. This is **not** silent installation,
+an access grant, or a way to enforce standards.
+
+User marketplace settings from step 2 are an alternative to project
+recommendations, not an extra file every project must contain.
+
+## 4. Install with Copilot CLI
+
+Use the remote URL for your host:
+
+```text
+copilot plugin marketplace add <remote-url>
 copilot plugin install team-standards@team-copilot-kit
 copilot plugin list
 ```
-If HTTPS authentication fails, use the SSH URL or check step 3.
+
+Run Copilot in the application repository to use the installed plugin. Manage
+the plugin through the interface used to install it; VS Code's `/plugin` commands
+and its customization UI can maintain separate inventories.
 
 ## 5. Release and update
 
-1. Change instructions or skills in a pull request.
-2. Bump `version` in `plugins/team-standards/plugin.json` **and** in both `marketplace.json` files.
-3. Run `python scripts/validate.py`, merge, tag (`v0.2.0`) and push the tag.
-4. Projects pinned with `ref` move when you update `ref` in their `.github/copilot/settings.json`.
-   Developers update with **Extensions: Check for Extension Updates** (VS Code) or
-   `copilot plugin update team-standards` (CLI).
+1. Change the plugin through a pull request.
+2. Update its version in [the manifest](../plugins/team-standards/plugin.json)
+   and the matching entry in both catalogs:
+   [Copilot catalog](../.github/plugin/marketplace.json) and
+   [compatible catalog](../.claude-plugin/marketplace.json).
+   Keep the catalogs identical and update their marketplace metadata version
+   when publishing a new marketplace release.
+3. Run `python .\scripts\validate.py` from the repository root.
+4. Merge, then tag the release and push the tag, for example:
 
-For fully reproducible installs, pin `ref` to a full 40-character commit SHA instead of a tag.
+   ```powershell
+   git tag v0.2.0
+   git push origin v0.2.0
+   ```
 
-## 6. Organization-wide control (optional)
+5. If the marketplace URL pins a revision, update that pin deliberately.
+   For project recommendations, update `source.ref` in the consuming project's
+   settings. Use a full commit SHA when immutability is required.
+   In VS Code, use **Extensions: Check for Extension Updates**. For a CLI install,
+   use `copilot plugin update team-standards@team-copilot-kit`.
 
-Administrators can centrally allow or block marketplaces and plugins (for example, allow only
-`dev.azure.com` sources from your organization). See *Manage agent plugins and marketplaces* in the
-VS Code documentation and your device-management policies.
+Review any instructions previously copied into application repositories by
+`setup-project-instructions` separately: plugin updates do not update those files.
+New releases are not forced into every project; consumers update according to
+their configured revisions and client update settings.
 
-## 7. Private GitHub instead of Azure DevOps
-
-| Topic | Private GitHub |
-|---|---|
-| Access | Repository **Read** permission (organization team) |
-| Authentication | GitHub sign-in in VS Code / `gh auth login`; the CLI retries HTTPS with your signed-in GitHub token |
-| Project settings | `examples/consumer-repo/.github/copilot/settings.github-private.json` (`"source": "github"`, `"repo": "<your-org>/<repository>"`) |
-| CLI | `copilot plugin marketplace add <your-org>/<repository>` |
-
-## 8. Troubleshooting
+## Troubleshooting
 
 | Symptom | Check |
 |---|---|
-| Marketplace or plugin not found | Run the `git ls-remote` test in step 3 with the exact URL. Check Read permission. |
-| Authentication prompt loops / 401 / 403 | Sign in again with Git Credential Manager, or switch to the SSH URL. Expired PAT? |
-| Plugin not listed in VS Code | `chat.plugins.enabled` is `true`; the plugin `name` in `plugin.json` matches the marketplace entry. |
-| Skill not listed | Folder name equals the `name` in `SKILL.md` (lowercase, hyphens). |
-| Instruction not applied | `applyTo` (default `src/**/*.cs`) matches the file path in the project; run **Developer: Open Agent Debug Logs**; or use the `setup-project-instructions` skill to place it in `.github/instructions/`. |
-| Old version still used | Check `ref` in the project settings; run the update command. |
+| Cannot fetch marketplace | Test the exact URL with `git ls-remote`; check sign-in and Read permission. |
+| Plugin missing | Enable `chat.plugins.enabled`; check the configured marketplace and installed/enabled state. |
+| Duplicate skills | Use either local loading or marketplace installation, not both. |
+| Logging rule not applied | Check `src/**/*.cs` against the application layout and inspect agent debug logs. Client support for `com.github.copilot/rules` can vary; use `setup-project-instructions` if needed. |
+| Old rules still used | Check revision pins, update through the original installation interface, and inspect project-local instruction copies. |
 
-> Plugin rules (`com.github.copilot/rules/`) are a Copilot-specific capability and support can vary
-> between clients and versions. For instructions that must always apply, use the
-> `setup-project-instructions` skill so the instruction is committed to the project itself.
+See the [official VS Code plugin documentation](https://code.visualstudio.com/docs/agent-customization/agent-plugins)
+for current settings and client support.
