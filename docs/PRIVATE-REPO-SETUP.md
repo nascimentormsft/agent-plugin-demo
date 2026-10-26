@@ -93,6 +93,9 @@ Then:
 3. Install **team-standards** from **team-copilot-kit** and review the trust prompt.
 4. Confirm the skills appear in **Chat: Configure Skills**.
 
+Follow [Verify and inspect the installed plugin](#verify-and-inspect-the-installed-plugin)
+below to see exactly what was installed, open its contents, and confirm it loads.
+
 Do not also register the same plugin with `chat.pluginLocations`.
 For a reproducible VS Code installation, append `#<full-40-character-commit-sha>`
 to the marketplace URL. A branch or tag can also select a revision, but is not
@@ -168,6 +171,120 @@ copilot plugin list
 Run Copilot in the application repository to use the installed plugin. Manage
 the plugin through the interface used to install it; VS Code's `/plugin` commands
 and its customization UI can maintain separate inventories.
+
+## Verify and inspect the installed plugin
+
+### What was installed?
+
+Registering a marketplace only makes its catalog discoverable. A project
+recommendation only recommends a plugin. **Installing `team-standards` downloads
+the plugin content; enabling it makes supported customizations available to the
+agent in that workspace.** It does not run the skills or add their templates to
+your application automatically.
+
+This template's plugin contains these seven files, relative to its plugin root:
+
+| Installed artifact | What it provides |
+|---|---|
+| [plugin.json](../plugins/team-standards/plugin.json) | Plugin identity, version, description, and metadata. |
+| [com.github.copilot/rules/structured-logging.instructions.md](../plugins/team-standards/com.github.copilot/rules/structured-logging.instructions.md) | Scoped logging standard for `src/**/*.cs`; loading this rule is client-dependent. |
+| [skills/add-structured-logging/SKILL.md](../plugins/team-standards/skills/add-structured-logging/SKILL.md) | Agent workflow for instrumenting an ASP.NET Core endpoint or service. |
+| [skills/add-structured-logging/templates/LogEvents.cs](../plugins/team-standards/skills/add-structured-logging/templates/LogEvents.cs) | C# event-ID template, not compiled or executed by installation. |
+| [skills/add-structured-logging/templates/CorrelationIdMiddleware.cs](../plugins/team-standards/skills/add-structured-logging/templates/CorrelationIdMiddleware.cs) | C# correlation-ID middleware template, not registered by installation. |
+| [skills/setup-project-instructions/SKILL.md](../plugins/team-standards/skills/setup-project-instructions/SKILL.md) | Agent workflow for explicitly creating a project-local instruction. |
+| [skills/setup-project-instructions/templates/structured-logging.instructions.md](../plugins/team-standards/skills/setup-project-instructions/templates/structured-logging.instructions.md) | Instruction template used by that setup workflow. |
+
+These links open the **source in this repository**, not necessarily your installed
+version. Inspect the installed copy or the exact published revision as described
+below when checking a specific release.
+
+The marketplace catalogs describe distribution; they are not additional
+project instructions. This plugin contains **no custom agents, hooks, MCP
+servers, or dependency installer**. Its skills are workflows interpreted by the
+agent, not background services.
+
+### Confirm installation and discovery in VS Code
+
+1. Open the consuming project and go to **Extensions > Agent Plugins - Installed**,
+   or **Chat: Open Customizations > Plugins**.
+2. Find **team-standards** from **team-copilot-kit**. Check its installed version
+   and that it is enabled for this workspace. Merely appearing in marketplace
+   search results or recommendations does not prove installation.
+3. Run **Chat: Configure Skills** and look for **both**
+   `add-structured-logging` and `setup-project-instructions`. Open the skill
+   definition from the customization UI where available to read its `SKILL.md`
+   and follow the relative links to its templates.
+4. In the open skill editor, use **Copy Path of Active File** from the Command
+   Palette to identify the actual loaded file. Open its containing plugin folder
+   in a separate VS Code window to inspect the manifest, rules, and templates.
+   If your client does not expose the definition in the UI, use
+   **Developer: Open Agent Debug Logs** after invoking the skill to locate the
+   loaded file reference instead.
+
+VS Code manages its own plugin storage; paths can vary by client version,
+profile, and installation method. Use the actual path exposed by your client
+rather than assuming it matches a maintainer's machine. Inspect installed files
+read-only: make changes in the private source repository and publish an update,
+not by editing the local plugin cache.
+
+### Inspect a Copilot CLI installation on disk
+
+For an installation made with the CLI, first confirm it is listed:
+
+```powershell
+copilot plugin list
+```
+
+CLI marketplace plugins are stored under
+`~/.copilot/installed-plugins/<marketplace>/<plugin>/`. On Windows, for the
+unchanged names in this template:
+
+```powershell
+$pluginRoot = Join-Path $HOME '.copilot\installed-plugins\team-copilot-kit\team-standards'
+if (-not (Test-Path -LiteralPath $pluginRoot)) {
+    throw 'CLI plugin folder not found. Check the installation method and plugin/marketplace names.'
+}
+Get-ChildItem -LiteralPath $pluginRoot -Recurse -File
+Get-Content -LiteralPath (Join-Path $pluginRoot 'plugin.json')
+Get-Content -LiteralPath (Join-Path $pluginRoot 'skills\add-structured-logging\SKILL.md')
+code $pluginRoot
+```
+
+This path is for **CLI marketplace installs**, not a universal VS Code cache
+path. Direct Git URL installs use a different CLI storage bucket. If the CLI
+list and VS Code UI differ, inspect through the interface used to install the
+plugin; do not treat one inventory as proof of the other's state.
+
+You can also inspect the private source using GitHub/Azure Repos in the browser:
+select the exact tag or commit used for installation and browse
+`plugins/team-standards`. Compare its manifest and files with the installed copy.
+The current default branch may differ from the installed release.
+
+### Confirm use, not just installation
+
+In the consuming project, select a matching C# endpoint and ask:
+
+> Use the add-structured-logging skill to add structured logging to this endpoint.
+
+Inspect the response's **References** or agent debug logs for the loaded skill
+and instruction paths. Skill discovery alone does not prove the logging rule was
+applied. If the client does not load plugin rules, explicitly run
+`setup-project-instructions`, check the resulting instruction under
+**Chat: Open Customizations > Instructions**, and verify its `applyTo` scope.
+
+Use the application's Git diff to distinguish downloaded assets from generated
+changes:
+
+| Action | Expected application-repository changes |
+|---|---|
+| Register/install/enable this plugin | No logging source files or project instructions are automatically created. Shared settings you add manually are separate changes. |
+| Run `setup-project-instructions` | Creates `.github/instructions/structured-logging.instructions.md`, or asks before replacing an existing file, and confirms the scope. |
+| Run `add-structured-logging` | May create missing `src/<Project>/Logging/LogEvents.cs` and `CorrelationIdMiddleware.cs`, modify `Program.cs`, the selected endpoint/service, and development logging settings. Existing shared helpers should be reused. |
+
+Run `git status --short` and `git diff` in the **application** repository before
+and after the skill, review new untracked files as well, then build/test the
+application. This verifies observable output; a plugin being installed or an
+agent saying it used a skill is not by itself proof that the result is correct.
 
 ## 5. Release and update
 
